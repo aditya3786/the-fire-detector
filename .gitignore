@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Large files (weights and datasets)
+*.pt
+*.weights
+*.h5
+*.pkl
+runs/
+data/
+
+# Firebase credentials (NEVER commit these)
+serviceAccountKey.json
+*.json
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Output files
+*.log
+*.out
