@@ -1,9 +1,9 @@
 from pydantic_settings import BaseSettings
-from typing import Optional
+from typing import Optional, Union
 import os
 
 class Settings(BaseSettings):
-    ALLOW_ORIGINS: list[str] = ["*"]
+    ALLOW_ORIGINS: Union[str, list[str]] = "*"
     MODEL_PATH: Optional[str] = None
     DEVICE: Optional[str] = None
     CONF_THRESHOLD: float = 0.10
@@ -11,6 +11,15 @@ class Settings(BaseSettings):
     ALERT_CONF_THRESHOLD: float = 0.50
     IMGSZ: int = 512
     WARMUP: bool = True
+    
+    def get_allow_origins(self) -> list[str]:
+        """Convert ALLOW_ORIGINS to list format"""
+        if isinstance(self.ALLOW_ORIGINS, str):
+            if self.ALLOW_ORIGINS == "*":
+                return ["*"]
+            # Split comma-separated values
+            return [origin.strip() for origin in self.ALLOW_ORIGINS.split(",")]
+        return self.ALLOW_ORIGINS
     
     def get_model_path(self) -> Optional[str]:
         """Resolve model path, handling relative paths and defaults"""

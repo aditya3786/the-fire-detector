@@ -7,7 +7,7 @@ from .services.yolo import warmup
 app = FastAPI(title="AI Fire Alert API")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOW_ORIGINS,
+    allow_origins=settings.get_allow_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
