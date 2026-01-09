@@ -1,0 +1,43 @@
+services:
+  # FastAPI Service for YOLO Detection
+  - type: web
+    name: fire-detection-api
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd platform && python -m uvicorn fastapi_app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MODEL_PATH
+        value: weights/best_swapped.pt
+      - key: DEVICE
+        value: cpu
+      - key: CONF_THRESHOLD
+        value: 0.10
+      - key: IMGSZ
+        value: 512
+      - key: ALERT_CONF_THRESHOLD
+        value: 0.50
+      - key: WARMUP
+        value: "true"
+      - key: ALLOW_ORIGINS
+        value: "*"
+    healthCheckPath: /detect/status
+
+  # Flask Dashboard Service
+  - type: web
+    name: fire-detection-dashboard
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd platform/backend && gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT --timeout 120 app:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SQLALCHEMY_DATABASE_URI
+        value: sqlite:///instance/alerts.db
+      - key: FASTAPI_BASE
+        fromService:
+          type: web
+          name: fire-detection-api
+          property: host
+    healthCheckPath: /api/health
