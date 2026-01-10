@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Details - Fire Detection</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .detail-row {
+            padding: 15px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            color: #333;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Dashboard</a>
+        <h1>Alert Details</h1>
+        
+        <div class="detail-row">
+            <div class="detail-label">Message</div>
+            <div class="detail-value">{{ alert.message }}</div>
+        </div>
+        
+        <div class="detail-row">
+            <div class="detail-label">Severity</div>
+            <div class="detail-value">{{ alert.severity }}</div>
+        </div>
+        
+        <div class="detail-row">
+            <div class="detail-label">Location</div>
+            <div class="detail-value">{{ alert.location }}</div>
+        </div>
+        
+        <div class="detail-row">
+            <div class="detail-label">Type</div>
+            <div class="detail-value">{{ alert.type }}</div>
+        </div>
+        
+        <div class="detail-row">
+            <div class="detail-label">Confidence</div>
+            <div class="detail-value">{{ (alert.confidence * 100)|round(1) }}%</div>
+        </div>
+        
+        <div class="detail-row">
+            <div class="detail-label">Timestamp</div>
+            <div class="detail-value">{{ alert.timestamp }}</div>
+        </div>
+        
+        <div class="detail-row">
+            <div class="detail-label">Status</div>
+            <div class="detail-value">{{ alert.status }}</div>
+        </div>
+    </div>
+</body>
+</html>
