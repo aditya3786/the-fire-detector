@@ -11,15 +11,25 @@ import mimetypes
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'secret!')
-# Use instance folder for database on Render
-instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
-os.makedirs(instance_path, exist_ok=True)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI', f'sqlite:///{os.path.join(instance_path, "alerts.db")}')
+
+# Database configuration - use /tmp for ephemeral storage on Render
+db_uri = os.getenv('SQLALCHEMY_DATABASE_URI')
+if not db_uri:
+    # Default to /tmp on Render (ephemeral but writable)
+    db_path = '/tmp/alerts.db'
+    db_uri = f'sqlite:///{db_path}'
+    
+app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*")
 db = SQLAlchemy(app)
+
+# Initialize database tables
+with app.app_context():
+    db.create_all()
+    print(f"Database initialized at: {db_uri}")
 
 # --- Models ---
 class Alert(db.Model):
@@ -371,7 +381,5 @@ def clear_db():
     return jsonify({'message': 'Database cleared'})
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     port = int(os.getenv('PORT', 5000))
     socketio.run(app, debug=False, host='0.0.0.0', port=port)
