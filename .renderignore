@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data and models (keep weights but ignore large data)
+data/
+runs/
+*.mp4
+*.avi
+*.mov
+
+# Jupyter
+*.ipynb
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.pdf
+*.md
+!README.md
+
+# Instance (will be created on server)
+instance/
+*.db
+
+# Not required
+not required/
+
+# Virtual environments
+platform/backend/venv/
+platform/venv/
