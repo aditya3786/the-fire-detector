@@ -545,12 +545,25 @@
                     body: formData
                 });
                 
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Server response:', response.status, errorText);
+                    uploadResult.innerHTML = `
+                        <div class="result-box error">
+                            <strong>Error:</strong> Server returned ${response.status}. Check console for details.
+                        </div>
+                    `;
+                    return;
+                }
+                
                 const result = await response.json();
+                console.log('Detection result:', result);
                 
                 if (result.error) {
                     uploadResult.innerHTML = `
                         <div class="result-box error">
-                            <strong>Error:</strong> ${result.error}
+                            <strong>Error:</strong> ${result.error}<br>
+                            <small>${result.detail || ''}</small>
                         </div>
                     `;
                 } else {
@@ -559,21 +572,24 @@
                     
                     uploadResult.innerHTML = `
                         <div class="result-box">
-                            <strong>Detection Result:</strong><br>
+                            <strong>✓ Detection Complete:</strong><br>
                             Severity: <span class="alert-badge badge-${severity}">${severity.toUpperCase()}</span><br>
                             Confidence: ${confidence}%
-                            ${result.alert ? '<br><strong>Alert created!</strong>' : ''}
+                            ${result.alert ? '<br><br><strong>🔔 Alert created!</strong>' : '<br><small>No alert needed (low confidence)</small>'}
                         </div>
                     `;
                     
-                    // Refresh alerts
-                    loadAlerts();
+                    // Refresh alerts if one was created
+                    if (result.alert) {
+                        setTimeout(() => loadAlerts(), 500);
+                    }
                 }
             } catch (error) {
                 console.error('Upload error:', error);
                 uploadResult.innerHTML = `
                     <div class="result-box error">
-                        <strong>Error:</strong> Failed to upload and analyze image
+                        <strong>Error:</strong> Failed to upload and analyze image<br>
+                        <small>${error.message}</small>
                     </div>
                 `;
             }

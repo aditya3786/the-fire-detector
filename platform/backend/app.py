@@ -134,7 +134,20 @@ def status_page():
 @app.route('/api/health')
 def health_check():
     """Health check endpoint for Render"""
-    return jsonify({'status': 'healthy', 'service': 'flask-dashboard'}), 200
+    fastapi_status = 'unknown'
+    fastapi_url = FASTAPI_BASE
+    try:
+        _fetch_fastapi('/detect/status')
+        fastapi_status = 'connected'
+    except Exception as e:
+        fastapi_status = f'disconnected: {str(e)}'
+    
+    return jsonify({
+        'status': 'healthy',
+        'service': 'flask-dashboard',
+        'fastapi_base': fastapi_url,
+        'fastapi_status': fastapi_status
+    }), 200
 
 FASTAPI_BASE = os.getenv('FASTAPI_BASE', 'http://127.0.0.1:8001')
 
@@ -256,16 +269,57 @@ def upload_detect():
     f = request.files.get('file')
     if not f:
         return jsonify({'error': 'file required'}), 400
+    
+    # Save file temporarily
+    import tempfile
+    suffix = os.path.splitext(f.filename or 'upload')[1]
     try:
-        content = f.read()
-        result = _post_fastapi_multipart('/detect/upload', f.filename or 'upload', content)
-        # Emit alert if created
-        alert = result.get('alert')
-        if alert:
-            socketio.emit('new_alert', _transform_alert(alert))
-        return jsonify(result)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            content = f.read()
+            tmp.write(content)
+            tmp_path = tmp.name
+        
+        # Try to use FastAPI if available
+        try:
+            result = _post_fastapi_multipart('/detect/upload', f.filename or 'upload', content)
+            alert = result.get('alert')
+            if alert:
+                socketio.emit('new_alert', _transform_alert(alert))
+            return jsonify(result)
+        except Exception as api_error:
+            # Fallback: do detection locally if FastAPI is unavailable
+            print(f"FastAPI unavailable, using local detection: {api_error}")
+            from .detection_fallback import detect_image_local
+            result = detect_image_local(tmp_path, f.filename or 'upload')
+            
+            # Create alert in local DB
+            if result.get('severity') in ['high', 'medium'] or result.get('confidence', 0) >= 0.5:
+                new_alert = Alert(
+                    severity=result['severity'],
+                    location='Uploaded Image',
+                    message=result.get('message', f"Detection: {result.get('type', 'unknown')}"),
+                    type=result.get('type', 'unknown'),
+                    confidence=result.get('confidence', 0.0),
+                    acknowledged=False,
+                    notification_sent=False
+                )
+                db.session.add(new_alert)
+                db.session.commit()
+                alert_data = new_alert.to_dict()
+                socketio.emit('new_alert', alert_data)
+                result['alert'] = alert_data
+            
+            return jsonify(result)
     except Exception as e:
+        print(f"Upload error: {e}")
         return jsonify({'error': 'upload failed', 'detail': str(e)}), 500
+    finally:
+        # Cleanup temp file
+        try:
+            if 'tmp_path' in locals():
+                os.unlink(tmp_path)
+        except:
+            pass
 
 @app.route('/alerts/<int:alert_id>/acknowledge', methods=['POST'])
 def acknowledge_alert_alias(alert_id):
